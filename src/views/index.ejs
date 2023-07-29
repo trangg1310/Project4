@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Latest compiled and minified CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+ 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/sign-in/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css">
+    <!-- jQuery library -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #result {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        #image1Preview {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/image/Group3.png" style="width:100%;" alt="Face Matching">
+    </div>
+
+    <!--<button onclick="compareFaces()">Compare Faces</button>-->
+    
+    <form action="/match" method="post" enctype="multipart/form-data">
+        <div class="form-outline mb-4">
+            <input type="text" id="cmnd" class="form-control" name="cmnd" required/>
+            <label class="form-label" for="cmnd">CMND</label>
+          </div>
+
+        <div class="form-outline mb-4">
+          <input type="file" id="image2Input" class="form-control" accept="image/*" name="face" required/>
+          <label class="form-label" for="face">Ảnh của bạn</label>
+        </div>
+        <div id="image1Preview">
+            <video id="video" width="400" height="300" autoplay></video>
+            <img id="image1" width="400" height="300">
+            <button type="button" onclick="captureImage()">Capture Image</button>
+        </div>
+        <button type="submit">Kiểm tra</button>
+    </form>
+    
+
+    <div id="result"></div>
+
+    
+    <script>
+        let image1DataUrl = null;
+        let stream = null;
+        let isWebcamActive = false;
+
+        // Lấy hình ảnh từ webcam và hiển thị nó trong thẻ <video>
+        function startWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                    window.stream = stream;
+                    isWebcamActive = true;
+                })
+                .catch(error => {
+                    alert('Error accessing webcam: ' + error.message);
+                });
+                document.getElementById('video').hidden = false;
+        }
+
+        // Dừng truy cập webcam
+        function stopWebcam() {
+            if (window.stream) {
+                const tracks = window.stream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+            isWebcamActive = false;
+        }
+
+        // Chụp hình ảnh từ webcam và hiển thị nó trong thẻ <img>
+        function captureImage() {
+            if (!isWebcamActive) {
+                startWebcam();
+            } else {
+                const video = document.getElementById('video');
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+                image1DataUrl = canvas.toDataURL();
+                const image1 = document.getElementById('image1');
+                image1.src = image1DataUrl;
+                stopWebcam();
+                video.hidden = true;
+                // Lưu ảnh vào input có id="image2Input"
+                const image1Blob = dataURItoBlob(image1DataUrl);
+                const image1File = new File([image1Blob], 'captured_image.png', { type: 'image/png' });
+
+                const image2Input = document.getElementById('image2Input');
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(image1File);
+                image2Input.files = dataTransfer.files;
+                }
+        }
+
+        // Chuyển đổi dữ liệu ảnh từ data URL sang Blob
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        }
+
+        // Khi trang web được tải, không bật webcam ngay lập tức
+        document.addEventListener('DOMContentLoaded', () => {
+            // Do nothing on initial page load
+        });
+        /* function compareFaces() {
+            const image2 = document.getElementById('image2Input').files[0];
+
+            if (!image1DataUrl || !image2) {
+                alert('Please capture an image from the webcam and select another image to compare.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image1', dataURItoBlob(image1DataUrl));
+            formData.append('image2', image2);
+
+            fetch('http://127.0.0.1:8800/compare_faces', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const similarityScore = data.similarity_score.toFixed(2);
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.textContent = `Similarity Score: ${similarityScore}%`;
+                }
+            })
+            .catch(error => {
+                alert('An error occurred while comparing faces.');
+                console.error(error);
+            });
+        }*/
+   </script>
+</body>
+</html>
