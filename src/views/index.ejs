@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="/css/style.css">
@@ -30,31 +31,46 @@
         #image1Preview {
             margin-top: 10px;
         }
+        #form {
+            padding: 40px 40px 0px 40px;
+            margin: 0 auto;
+            width: 70vw;
+            max-width: 500px;
+        }
+        #form-hidden {
+            z-index: -1;
+        }
+        .btn-outline-dark {
+            margin-bottom: 20px;
+        }
+        #image1Preview {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <img src="/image/Group3.png" style="width:100%;" alt="Face Matching">
+        <img src="/image/Group1.png" style="width:100%;" alt="Face Matching">
     </div>
 
     <!--<button onclick="compareFaces()">Compare Faces</button>-->
     
-    <form action="/match" method="post" enctype="multipart/form-data">
-        <div class="form-outline mb-4">
+    <form action="/match" method="post" enctype="multipart/form-data" id="form">
+        <div class="form-floating mb-4">
             <input type="text" id="cmnd" class="form-control" name="cmnd" required/>
             <label class="form-label" for="cmnd">CMND</label>
           </div>
 
-        <div class="form-outline mb-4">
+        <div class="form-outline mb-4" id="form-hidden" hidden>
           <input type="file" id="image2Input" class="form-control" accept="image/*" name="face" required/>
           <label class="form-label" for="face">Ảnh của bạn</label>
         </div>
         <div id="image1Preview">
-            <video id="video" width="400" height="300" autoplay></video>
+            <button class="btn btn-outline-dark" onclick="captureImage()">Capture Image</button>
             <img id="image1" width="400" height="300">
-            <button type="button" onclick="captureImage()">Capture Image</button>
+            <video id="video" width="400" height="300" autoplay hidden></video>
         </div>
-        <button type="submit">Kiểm tra</button>
+        <button class="btn btn-outline-success" type="submit">Kiểm tra</button>
     </form>
     
 
@@ -79,6 +95,7 @@
                     alert('Error accessing webcam: ' + error.message);
                 });
                 document.getElementById('video').hidden = false;
+                document.getElementById('image1').hidden = true;
         }
 
         // Dừng truy cập webcam
@@ -88,6 +105,7 @@
                 tracks.forEach(track => track.stop());
             }
             isWebcamActive = false;
+            document.getElementById('image1').hidden = false;
         }
 
         // Chụp hình ảnh từ webcam và hiển thị nó trong thẻ <img>

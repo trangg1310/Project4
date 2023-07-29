@@ -29,7 +29,7 @@ let upload = multer({ storage: storage, fileFilter: imageFilter });
 
 const initWebRoute = (app) => {
     router.get('/', homeController.getHomepage);
-    router.get('/hello', homeController.getHello);
+    router.get('/result', homeController.getResult);
     router.post('/match',upload.single('face'), homeController.postMatch);
     return app.use('/', router);
 }
